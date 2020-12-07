@@ -264,6 +264,7 @@ def extractDetails(posts,SINGLE_POST=False):
                     continue
 
                 if details['POSTID'] in GLOBAL.downloadedPosts(): continue
+                if details['POSTID'] in GLOBAL.Posts404(): continue
 
                 if not any(domain in submission.domain for domain in GLOBAL.arguments.skip_domain):
                     result = matchWithDownloader(submission)

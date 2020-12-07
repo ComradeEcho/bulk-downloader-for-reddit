@@ -149,6 +149,11 @@ class Arguments:
                             type=str
                             )
 
+        parser.add_argument("--posts-404",
+                            help="Use a hash file to keep track of 404 files",
+                            type=str
+                            )
+
         parser.add_argument("--no-download",
                             action="store_true",
                             help="Just saved posts into a the POSTS.json file without downloading"

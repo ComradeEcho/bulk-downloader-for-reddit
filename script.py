@@ -165,6 +165,7 @@ def download(submissions):
               
         except FileAlreadyExistsError:
             print("It already exists")
+            GLOBAL.downloadedPosts.add(details['POSTID'])
             duplicates += 1
 
         except ImgurLoginError:
@@ -225,6 +226,10 @@ def download(submissions):
                     class_name=exc.__class__.__name__,info=str(exc)
                 )
             )
+
+            if ("404" in str(exc)):
+                print("Adding post to the 404 log")
+                GLOBAL.Posts404.add(details['POSTID'])
 
             logging.error(sys.exc_info()[0].__name__,
                           exc_info=full_exc_info(sys.exc_info()))
@@ -309,6 +314,11 @@ def main():
         GLOBAL.downloadedPosts = Store()
 
     printLogo()
+    if arguments.posts_404:
+        GLOBAL.Posts404 = Store(arguments.posts_404)
+    else:
+        GLOBAL.Posts404 = Store()
+
     print("\n"," ".join(sys.argv),"\n",noPrint=True)
 
     if arguments.log is not None:
