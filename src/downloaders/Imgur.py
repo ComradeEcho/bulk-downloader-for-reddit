@@ -3,9 +3,10 @@ import json
 import os
 import time
 import requests
+import re
 
 from src.utils import GLOBAL, nameCorrector
-from src.utils import printToFile as print
+from src.utils import printToFile
 from src.downloaders.Direct import Direct
 from src.downloaders.downloaderUtils import getFile
 from src.errors import FileNotFoundError, FileAlreadyExistsError, AlbumNotDownloadedCompletely, ImageNotFound, ExtensionError, NotADownloadableLinkError, TypeInSkip
@@ -14,33 +15,37 @@ class Imgur:
 
     IMGUR_IMAGE_DOMAIN = "https://i.imgur.com/"
 
+
     def __init__(self,directory, post):
 
+        self.link = post['CONTENTURL']
         link = post['CONTENTURL']
+        print(link)
 
         if link.endswith(".gifv"):
             link = link.replace(".gifv",".mp4")
             Direct(directory, {**post, 'CONTENTURL': link})
             return None
 
-        self.rawData = self.getData(link)
+        self.rawData = self.getData(link, self.isAlbum)
+
 
         self.directory = directory
         self.post = post
 
         if self.isAlbum:
-            if self.rawData["album_images"]["count"] != 1:
-                self.downloadAlbum(self.rawData["album_images"])
+            if self.rawData["data"]["images_count"] != 1:
+                self.downloadAlbum(self.rawData["data"])
             else:
-                self.download(self.rawData["album_images"]["images"][0])
+                self.download(self.rawData["data"]["images"][0])
         else:
-            self.download(self.rawData)
+            self.download(self.rawData["data"])
 
     def downloadAlbum(self, images):
         folderName = GLOBAL.config['filename'].format(**self.post)
         folderDir = self.directory / folderName
 
-        imagesLenght = images["count"]
+        imagesLenght = images["images_count"]
         howManyDownloaded = 0
         duplicates = 0
 
@@ -55,14 +60,14 @@ class Imgur:
 
         for i in range(imagesLenght):
 
-            extension = self.validateExtension(images["images"][i]["ext"])
+            extension = self.validateExtension(os.path.splitext(images["images"][i]["link"]))
 
-            imageURL = self.IMGUR_IMAGE_DOMAIN + images["images"][i]["hash"] + extension
+            imageURL = self.IMGUR_IMAGE_DOMAIN + images["images"][i]["id"] + extension
 
             filename = "_".join([
-                str(i+1), nameCorrector(images["images"][i]['title']), images["images"][i]['hash']
+                str(i+1), nameCorrector(images["images"][i]['title']), images["images"][i]['id']
             ]) + extension
-            shortFilename = str(i+1) + "_" + images["images"][i]['hash']
+            shortFilename = str(i+1) + "_" + images["images"][i]['id']
 
             print("\n  ({}/{})".format(i+1,imagesLenght))
 
@@ -99,8 +104,8 @@ class Imgur:
             )           
 
     def download(self, image):        
-        extension = self.validateExtension(image["ext"])
-        imageURL = self.IMGUR_IMAGE_DOMAIN + image["hash"] + extension
+        extension = self.validateExtension(os.path.splitext(image["link"]))
+        imageURL = self.IMGUR_IMAGE_DOMAIN + image["id"] + extension
 
         filename = GLOBAL.config['filename'].format(**self.post) + extension
         shortFilename = self.post['POSTID']+extension
@@ -109,29 +114,29 @@ class Imgur:
 
     @property
     def isAlbum(self):
-        return "album_images" in self.rawData
+        return ("gallery" in self.link) or ("/a/" in self.link)
+
 
     @staticmethod 
-    def getData(link):
+    def getData(link, isAlbum):
         
+        YOUR_CLIENT_ID = "96be71fd158fbe8"
+        HASH_REGEX = "imgur.com.*\/(\w{4,8})"
+
+        imageHash = re.search(HASH_REGEX, link)
+        if isAlbum:
+            link = "https://api.imgur.com/3/album/" + imageHash.group(1)
+        else: 
+            link = "https://api.imgur.com/3/image/" + imageHash.group(1)
+        headers = {"Authorization": "Client-ID " + YOUR_CLIENT_ID}
         cookies = {"over18": "1"}
-        res = requests.get(link, cookies=cookies)
-        if res.status_code != 200: raise ImageNotFound(f"Server responded with {res.status_code} to {link}")
-        pageSource = requests.get(link, cookies=cookies).text
+        response = requests.get(link, headers=headers, cookies=cookies)
 
-        STARTING_STRING = "image               : "
-        ENDING_STRING = "group               :"
+        responseJson = response.json()
+        responseCode = responseJson["status"]
+        if responseCode != 200: raise ImageNotFound(f"Server responded with {responseCode} to {link}")
 
-        STARTING_STRING_LENGHT = len(STARTING_STRING)
-        try:
-            startIndex = pageSource.index(STARTING_STRING) + STARTING_STRING_LENGHT
-            endIndex = pageSource.index(ENDING_STRING)
-        except ValueError:
-            raise NotADownloadableLinkError(f"Could not read the page source on {link}")
-
-        data = pageSource[startIndex:endIndex].strip()[:-1]
-
-        return json.loads(data)
+        return responseJson
 
     @staticmethod
     def validateExtension(string):
