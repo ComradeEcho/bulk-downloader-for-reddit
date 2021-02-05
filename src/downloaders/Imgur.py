@@ -45,7 +45,7 @@ class Imgur:
         folderName = GLOBAL.config['filename'].format(**self.post)
         folderDir = self.directory / folderName
 
-        imagesLenght = images["images_count"]
+        imagesLength = images["images_count"]
         howManyDownloaded = 0
         duplicates = 0
 
@@ -58,7 +58,7 @@ class Imgur:
 
         print(folderName)
 
-        for i in range(imagesLenght):
+        for i in range(imagesLength):
 
             extension = self.validateExtension(os.path.splitext(images["images"][i]["link"]))
 
@@ -69,7 +69,7 @@ class Imgur:
             ]) + extension
             shortFilename = str(i+1) + "_" + images["images"][i]['id']
 
-            print("\n  ({}/{})".format(i+1,imagesLenght))
+            print("\n  ({}/{})".format(i+1,imagesLength))
 
             try:
                 getFile(filename,shortFilename,folderDir,imageURL,indent=2)
@@ -96,9 +96,9 @@ class Imgur:
                 )
                 print(GLOBAL.log_stream.getvalue(),noPrint=True)
 
-        if duplicates == imagesLenght:
+        if duplicates == imagesLength:
             raise FileAlreadyExistsError
-        elif howManyDownloaded + duplicates < imagesLenght:
+        elif howManyDownloaded + duplicates < imagesLength:
             raise AlbumNotDownloadedCompletely(
                 "Album Not Downloaded Completely"
             )           

@@ -19,11 +19,11 @@ class Erome:
         except urllib.error.HTTPError:
             raise NotADownloadableLinkError("Not a downloadable link")
 
-        imagesLenght = len(IMAGES)
-        howManyDownloaded = imagesLenght
+        imagesLength = len(IMAGES)
+        howManyDownloaded = imagesLength
         duplicates = 0
 
-        if imagesLenght == 1:
+        if imagesLength == 1:
             
             extension = getExtension(IMAGES[0])
 
@@ -52,7 +52,7 @@ class Erome:
                 folderDir = directory / post['POSTID']
                 os.makedirs(folderDir)
 
-            for i in range(imagesLenght):
+            for i in range(imagesLength):
                 
                 extension = getExtension(IMAGES[i])
 
@@ -61,7 +61,7 @@ class Erome:
                 if 'https://' not in imageURL and 'http://' not in imageURL:
                     imageURL = "https://" + imageURL
 
-                print("  ({}/{})".format(i+1,imagesLenght))
+                print("  ({}/{})".format(i+1,imagesLength))
                 print("  {}".format(filename))
 
                 try:
@@ -85,9 +85,9 @@ class Erome:
                     )
                     howManyDownloaded -= 1
 
-            if duplicates == imagesLenght:
+            if duplicates == imagesLength:
                 raise FileAlreadyExistsError
-            elif howManyDownloaded + duplicates < imagesLenght:
+            elif howManyDownloaded + duplicates < imagesLength:
                 raise AlbumNotDownloadedCompletely(
                     "Album Not Downloaded Completely"
                 )

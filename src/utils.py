@@ -76,13 +76,13 @@ def nameCorrector(string,reference=None):
     stringLength = len(string)
 
     if reference:
-        referenceLenght = len(reference)
-        totalLenght = referenceLenght
+        referenceLength = len(reference)
+        totalLength = referenceLength
     else:
-        totalLenght = stringLength
+        totalLength = stringLength
 
-    if totalLenght > LIMIT:
-        limit = LIMIT - referenceLenght
+    if totalLength > LIMIT:
+        limit = LIMIT - referenceLength
         string = string[:limit-1]
 
     string = string.replace(" ", "_")
