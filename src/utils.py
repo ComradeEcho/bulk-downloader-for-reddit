@@ -69,7 +69,8 @@ def nameCorrector(string,reference=None):
     with underscore (_) and shorten it.
     Return the string
     """
-
+    if string is None: 
+        return ""
     LIMIT = 247
 
     stringLength = len(string)
