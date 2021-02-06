@@ -141,7 +141,8 @@ def download(submissions):
             print()
             print(directory)
             print(filename)
-            print("It already exists")
+            print("Post already exists")
+            GLOBAL.downloadedPosts.add(details['POSTID'])
             duplicates += 1
             continue
 
@@ -164,7 +165,7 @@ def download(submissions):
             downloadedCount += 1
               
         except FileAlreadyExistsError:
-            print("It already exists")
+            print("File already exists")
             GLOBAL.downloadedPosts.add(details['POSTID'])
             duplicates += 1
 
