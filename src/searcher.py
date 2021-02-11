@@ -202,6 +202,7 @@ def extractDetails(posts,SINGLE_POST=False):
 
     postList = []
     postCount = 1
+    skippedPosts = 0
 
     allPosts = {}
 
@@ -263,8 +264,12 @@ def extractDetails(posts,SINGLE_POST=False):
                 except AttributeError:
                     continue
 
-                if details['POSTID'] in GLOBAL.downloadedPosts(): continue
-                if details['POSTID'] in GLOBAL.Posts404(): continue
+                if details['POSTID'] in GLOBAL.downloadedPosts(): 
+                    skippedPosts += 1
+                    continue
+                if details['POSTID'] in GLOBAL.Posts404():
+                    skippedPosts += 1
+                    continue
 
                 if not any(domain in submission.domain for domain in GLOBAL.arguments.skip_domain):
                     result = matchWithDownloader(submission)
@@ -285,7 +290,11 @@ def extractDetails(posts,SINGLE_POST=False):
         print()
         return postList
     else:
-        raise NoMatchingSubmissionFound("No matching submission was found")
+        if (skippedPosts > 0):
+            raise NoMatchingSubmissionFound("No new posts found. " + str(skippedPosts) + " posts skipped")
+        else:
+            raise NoMatchingSubmissionFound("No matching submission was found")
+        return
 
 def matchWithDownloader(submission):
 
