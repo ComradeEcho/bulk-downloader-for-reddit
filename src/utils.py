@@ -94,3 +94,11 @@ def nameCorrector(string,reference=None):
     string = "".join([i if i not in BAD_CHARS else "_" for i in string])
 
     return string
+
+def httpResponseCodeCheck(responseCode, url):
+    if responseCode == 404 : 
+        raise FileNotFoundError(f"Server responded with {responseCode} to {url}")
+    if responseCode == 403 : 
+        raise InsufficientPermission(f"Server responded with {responseCode} to {url}")
+    return responseCode
+        
