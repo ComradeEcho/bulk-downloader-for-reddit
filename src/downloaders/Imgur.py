@@ -5,8 +5,8 @@ import time
 import requests
 import re
 
-from src.utils import GLOBAL, nameCorrector
-from src.utils import printToFile
+from src.utils import GLOBAL, nameCorrector, httpResponseCodeCheck
+from src.utils import printToFile as print
 from src.downloaders.Direct import Direct
 from src.downloaders.downloaderUtils import getFile
 from src.errors import FileNotFoundError, FileAlreadyExistsError, AlbumNotDownloadedCompletely, ImageNotFound, ExtensionError, NotADownloadableLinkError, TypeInSkip
@@ -16,14 +16,14 @@ class Imgur:
     IMGUR_IMAGE_DOMAIN = "https://i.imgur.com/"
 
 
-    def __init__(self,directory, post):
+    def __init__(self, directory, post):
 
         self.link = post['CONTENTURL']
         link = post['CONTENTURL']
         print(link)
 
         if link.endswith(".gifv"):
-            link = link.replace(".gifv",".mp4")
+            link = link.replace(".gifv", ".mp4")
             Direct(directory, {**post, 'CONTENTURL': link})
             return None
 
@@ -60,7 +60,7 @@ class Imgur:
 
         for i in range(imagesLength):
 
-            extension = self.validateExtension(os.path.splitext(images["images"][i]["link"]))
+            extension = self.validateExtension(os.path.splitext(images["images"][i]["link"])[1])
 
             imageURL = self.IMGUR_IMAGE_DOMAIN + images["images"][i]["id"] + extension
 
@@ -104,7 +104,7 @@ class Imgur:
             )           
 
     def download(self, image):        
-        extension = self.validateExtension(os.path.splitext(image["link"]))
+        extension = self.validateExtension(os.path.splitext(image["link"])[1])
         imageURL = self.IMGUR_IMAGE_DOMAIN + image["id"] + extension
 
         filename = GLOBAL.config['filename'].format(**self.post) + extension
@@ -133,15 +133,14 @@ class Imgur:
         response = requests.get(link, headers=headers, cookies=cookies)
 
         responseJson = response.json()
-        responseCode = responseJson["status"]
-        if responseCode != 200: raise ImageNotFound(f"Server responded with {responseCode} to {link}")
+        print(httpResponseCodeCheck(responseJson["status"], link))
 
         return responseJson
 
     @staticmethod
     def validateExtension(string):
-        POSSIBLE_EXTENSIONS = [".jpg", ".png", ".mp4", ".gif"]
-
+        POSSIBLE_EXTENSIONS = [".jpg", ".png", ".mp4", ".gif", ".jpeg"]
+        string = string.split("?", 1)[0] 
         for extension in POSSIBLE_EXTENSIONS:
             if extension in string: return extension
         else: raise ExtensionError(f"\"{string}\" is not recognized as a valid extension.")
