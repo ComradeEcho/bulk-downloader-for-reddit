@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import webbrowser
+import urllib.request
 from io import StringIO
 from pathlib import Path, PurePath
 from prawcore.exceptions import InsufficientScope
@@ -24,7 +25,7 @@ from src.downloaders.selfPost import SelfPost
 from src.downloaders.vreddit import VReddit
 from src.downloaders.youtube import Youtube
 from src.downloaders.gifDeliveryNetwork import GifDeliveryNetwork
-from src.errors import ImgurLimitError, NoSuitablePost, FileAlreadyExistsError, ImgurLoginError, NotADownloadableLinkError, NoSuitablePost, InvalidJSONFile, FailedToDownload, TypeInSkip, DomainInSkip, AlbumNotDownloadedCompletely, full_exc_info
+from src.errors import ImgurLimitError, FileNotFoundError, NoSuitablePost, FileAlreadyExistsError, ImgurLoginError, NotADownloadableLinkError, NoSuitablePost, InvalidJSONFile, FailedToDownload, TypeInSkip, DomainInSkip, AlbumNotDownloadedCompletely, full_exc_info
 from src.parser import LinkDesigner
 from src.searcher import getPosts
 from src.utils import (GLOBAL, createLogFile, nameCorrector,
@@ -220,6 +221,13 @@ def download(submissions):
                 ),
                 submissions[i]
             ]})
+        except FileNotFoundError:
+            print("File not found")
+
+        except urllib.error.HTTPError as e:
+            print(e)
+            if e.code == 404:
+                GLOBAL.Posts404.add(details['POSTID'])
         
         except Exception as exc:
             print(
@@ -227,10 +235,6 @@ def download(submissions):
                     class_name=exc.__class__.__name__,info=str(exc)
                 )
             )
-
-            if ("404" in str(exc)):
-                print("Adding post to the 404 log")
-                GLOBAL.Posts404.add(details['POSTID'])
 
             logging.error(sys.exc_info()[0].__name__,
                           exc_info=full_exc_info(sys.exc_info()))
