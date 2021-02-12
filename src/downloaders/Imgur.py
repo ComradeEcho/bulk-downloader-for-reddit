@@ -19,17 +19,13 @@ class Imgur:
     def __init__(self, directory, post):
 
         self.link = post['CONTENTURL']
-        link = post['CONTENTURL']
-        print(link)
 
-        if link.endswith(".gifv"):
-            link = link.replace(".gifv", ".mp4")
+        if self.link.endswith(".gifv"):
+            link = self.link.replace(".gifv", ".mp4")
             Direct(directory, {**post, 'CONTENTURL': link})
             return None
 
-        self.rawData = self.getData(link, self.isAlbum)
-
-
+        self.rawData = self.getData(self.link, self.isAlbum)
         self.directory = directory
         self.post = post
 
