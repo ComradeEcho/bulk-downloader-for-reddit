@@ -30,12 +30,12 @@ class Imgur:
         self.post = post
 
         if self.isAlbum:
-                if self.rawData["data"]["images_count"] != 1:
-                    self.downloadAlbum(self.rawData["data"])
-                else:
-                    self.download(self.rawData["data"]["images"][0])
+            if self.rawData["data"]["images_count"] != 1:
+                self.downloadAlbum(self.rawData["data"])
             else:
-                self.download(self.rawData["data"])
+                self.download(self.rawData["data"]["images"][0])
+        else:
+            self.download(self.rawData["data"])
 
     def downloadAlbum(self, images):
         folderName = GLOBAL.config['filename'].format(**self.post)
