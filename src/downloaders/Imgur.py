@@ -30,12 +30,12 @@ class Imgur:
         self.post = post
 
         if self.isAlbum:
-            if self.rawData["data"]["images_count"] != 1:
-                self.downloadAlbum(self.rawData["data"])
+                if self.rawData["data"]["images_count"] != 1:
+                    self.downloadAlbum(self.rawData["data"])
+                else:
+                    self.download(self.rawData["data"]["images"][0])
             else:
-                self.download(self.rawData["data"]["images"][0])
-        else:
-            self.download(self.rawData["data"])
+                self.download(self.rawData["data"])
 
     def downloadAlbum(self, images):
         folderName = GLOBAL.config['filename'].format(**self.post)
@@ -124,13 +124,10 @@ class Imgur:
             link = "https://api.imgur.com/3/album/" + imageHash.group(1)
         else: 
             link = "https://api.imgur.com/3/image/" + imageHash.group(1)
-        headers = {"Authorization": "Client-ID " + YOUR_CLIENT_ID}
-        cookies = {"over18": "1"}
-        response = requests.get(link, headers=headers, cookies=cookies)
 
-        responseJson = response.json()
-        print(httpResponseCodeCheck(responseJson["status"], link))
-
+        req = urllib.request.Request(link)
+        req.add_header("Authorization", "Client-ID " + YOUR_CLIENT_ID)
+        response = urllib.request.urlopen(req)
         return responseJson
 
     @staticmethod
