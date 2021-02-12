@@ -202,7 +202,8 @@ def extractDetails(posts,SINGLE_POST=False):
 
     postList = []
     postCount = 1
-    skippedPosts = 0
+    duplicatePostsSkipped = 0
+    _404PostsSkipped = 0
 
     allPosts = {}
 
@@ -240,11 +241,11 @@ def extractDetails(posts,SINGLE_POST=False):
         try:
             for submission in posts:
 
-                if postCount % 100 == 0:
+                if (postCount + duplicatePostsSkipped + _404PostsSkipped) % 100 == 0:
                     sys.stdout.write("• ")
                     sys.stdout.flush()
 
-                if postCount % 1000 == 0:
+                if (postCount + duplicatePostsSkipped + _404PostsSkipped) % 1000 == 0:
                     sys.stdout.write("\n"+" "*14)
                     sys.stdout.flush()
 
@@ -264,11 +265,11 @@ def extractDetails(posts,SINGLE_POST=False):
                 except AttributeError:
                     continue
 
-                if details['POSTID'] in GLOBAL.downloadedPosts(): 
-                    skippedPosts += 1
+                if details['POSTID'] in GLOBAL.downloadedPosts():
+                    duplicatePostsSkipped += 1
                     continue
                 if details['POSTID'] in GLOBAL.Posts404():
-                    skippedPosts += 1
+                    _404PostsSkipped += 1
                     continue
 
                 if not any(domain in submission.domain for domain in GLOBAL.arguments.skip_domain):
@@ -290,11 +291,16 @@ def extractDetails(posts,SINGLE_POST=False):
         print()
         return postList
     else:
-        if (skippedPosts > 0):
-            raise NoMatchingSubmissionFound("No new posts found. " + str(skippedPosts) + " posts skipped")
+        if (duplicatePostsSkipped + _404PostsSkipped) == 0:
+            raise NoMatchingSubmissionFound("\nNo matching submission was found")
         else:
-            raise NoMatchingSubmissionFound("No matching submission was found")
-        return
+            error = "\nNo new matching posts found."
+            if duplicatePostsSkipped > 0:
+                error += "\n" + str(duplicatePostsSkipped) + " duplicate posts skipped."
+            if _404PostsSkipped > 0:
+                error +=  "\n"+ str(_404PostsSkipped) + " posts skipped due to 404: File Not Found."
+            raise NoMatchingSubmissionFound(error)
+
 
 def matchWithDownloader(submission):
 
