@@ -42,7 +42,6 @@ class Gfycat:
         req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36 OPR/54.0.2952.64')
 
         response = urllib.request.urlopen(req)
-        httpResponseCodeCheck(response.getcode(), url)
         pageSource = response.read().decode()
 
         soup = BeautifulSoup(pageSource, "html.parser")
